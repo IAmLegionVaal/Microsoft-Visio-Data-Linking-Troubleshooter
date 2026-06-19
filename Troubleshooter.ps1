@@ -1,0 +1,6 @@
+#requires -Version 5.1
+<# Created by Dewald Pretorius #>
+param([string]$OutputPath)
+if(-not $OutputPath){$OutputPath="$([Environment]::GetFolderPath('Desktop'))\Visio_Data_Link_Reports"};New-Item $OutputPath -ItemType Directory -Force|Out-Null
+$drivers=Get-OdbcDriver -ErrorAction SilentlyContinue|Select-Object Name,Platform,Version;$events=Get-WinEvent -FilterHashtable @{LogName='Application';StartTime=(Get-Date).AddDays(-7)} -ErrorAction SilentlyContinue|Where-Object Message -match 'VISIO|External Data|ODBC|OLEDB'|Select-Object -First 50 TimeCreated,Id,ProviderName,Message
+@('MICROSOFT VISIO DATA LINKING TROUBLESHOOTER','Created by Dewald Pretorius',"Generated: $(Get-Date)",'Drivers:',($drivers|Format-Table -AutoSize|Out-String -Width 220),'Events:',($events|Format-List|Out-String -Width 220),'Guidance: verify source paths, credentials, provider bitness, refresh permissions, row identifiers, shape-data mappings, and network reachability.')|Set-Content (Join-Path $OutputPath 'Report.txt') -Encoding UTF8
